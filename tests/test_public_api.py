@@ -34,19 +34,14 @@ def test_domain_reexports_are_the_original_objects() -> None:
     import psx
     import pydux
     import qyro
-    from psx.integrations.pydux import StoreProvider, use_dispatch, use_selector
-    from psx.integrations.qyro import PSXMount, QyroProvider, mount_psx
     from velto import runtime, state, ui
 
     assert ui.Button is psx.Button
     assert ui.ComponentRegistry is psx.ComponentRegistry
     assert ui.register_adapter is psx.register_adapter
-    assert ui.PSXMount is PSXMount
-    assert ui.QyroProvider is QyroProvider
-    assert ui.mount_psx is mount_psx
-    assert ui.StoreProvider is StoreProvider
-    assert ui.use_dispatch is use_dispatch
-    assert ui.use_selector is use_selector
+    assert state.StoreProvider is pydux.StoreProvider
+    assert state.use_dispatch is pydux.use_dispatch
+    assert state.use_selector is pydux.use_selector
     assert state.Store is pydux.Store
     assert state.configure_store is pydux.configure_store
     assert runtime.EngineContainer is qyro.EngineContainer
@@ -61,6 +56,8 @@ def test_public_surfaces_are_closed() -> None:
         "Selector", "Slice", "Store", "combine_reducers", "configure_store",
         "create_async_thunk", "create_selector", "create_slice", "create_thunk_middleware",
         "deep_equal", "devtools_middleware", "is_identical", "shallow_equal", "start_inspector",
+        "StoreProvider", "use_dispatch", "use_selector",
     }
-    assert {"PSXMount", "QyroProvider", "StoreProvider", "use_selector", "load_plugins"} <= set(ui.__all__)
+    assert {"load_plugins", "use_state", "Button"} <= set(ui.__all__)
+    assert not {"PSXComponent", "PSXMount", "QyroProvider", "StoreProvider", "mount_psx"} & set(ui.__all__)
     assert {"EngineContainer", "get_resource", "is_frozen"} <= set(runtime.__all__)

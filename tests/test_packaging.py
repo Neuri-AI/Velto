@@ -15,21 +15,23 @@ def test_distribution_metadata_declares_the_facade_dependency_graph() -> None:
     assert project["dependencies"] == [
         "qyro-engine>=0.1.0,<0.2.0",
         "psx>=1.0.0a1,<2.0.0",
-        "pydux>=1.0.0a1,<2.0.0",
+        "pydux[psx]>=1.0.0a1,<2.0.0",
     ]
     assert set(project["optional-dependencies"]) == {
         "pyside6", "pyqt6", "pyqt5", "pyside2", "kivy", "sentry"
     }
 
 
-def test_optional_qyro_integrations_use_the_certified_qyro_range() -> None:
+def test_pydux_owns_the_optional_framework_integrations() -> None:
     workspace = Path(__file__).resolve().parents[2]
     psx = tomllib.loads((workspace / "psx" / "pyproject.toml").read_text())
     pydux = tomllib.loads((workspace / "pydux" / "pyproject.toml").read_text())
 
-    assert psx["project"]["optional-dependencies"]["qyro"] == [
-        "qyro-engine>=0.1.0,<0.2.0"
+    assert "qyro" not in psx["project"]["optional-dependencies"]
+    assert psx["project"]["optional-dependencies"].get("pydux") is None
+    assert pydux["project"]["optional-dependencies"]["psx"] == [
+        "velto-core>=0.1.0,<1.0.0"
     ]
     assert pydux["project"]["optional-dependencies"]["qyro"] == [
-        "qyro-engine>=0.1.0,<0.2.0"
+        "qyro-engine>=1.0.0a1,<2.0.0"
     ]

@@ -1,6 +1,6 @@
 """FocusBoard stage 06: a Pydux slice with a PSX provider."""
-from velto.state import configure_store, create_slice
-from velto.ui import App, StoreProvider, component, psx, use_dispatch, use_selector
+from velto.state import StoreProvider, configure_store, create_slice, use_dispatch, use_selector
+from velto.ui import App, component, psx
 
 
 tasks = create_slice(
