@@ -27,7 +27,7 @@ def test_root_reexports_qyro_context_without_a_wrapper() -> None:
 
     assert velto.__all__ == ["VeltoContext", "__version__"]
     assert velto.VeltoContext is qyro.VeltoContext
-    assert velto.VeltoContext.__module__ == "qyro.client.velto_context"
+    assert velto.VeltoContext is qyro.ApplicationContext
 
 
 def test_domain_reexports_are_the_original_objects() -> None:
