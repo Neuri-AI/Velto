@@ -1,0 +1,81 @@
+name: P0 C05 full ecosystem wheel resolver
+
+on:
+  push:
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/p0-ecosystem-resolver.yml"
+      - "velto/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-wheel-resolver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: facade
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Clone current collaborating sources
+        run: |
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 https://github.com/Neuri-AI/qyro.git qyro
+          git clone --depth=1 https://github.com/Neuri-AI/Velto-CLI.git cli
+          for name in facade psx pydux qyro cli; do
+            echo "$name: $(git -C "$name" rev-parse HEAD)" | tee -a source-shas.txt
+          done
+          cat source-shas.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Build 5 actual distribution wheels
+        run: |
+          python -m pip install --upgrade pip build
+          mkdir -p wheelhouse
+          for name in psx pydux qyro cli facade; do
+            (cd "$name" && python -m build --wheel --outdir "$GITHUB_WORKSPACE/wheelhouse")
+          done
+          ls -lh wheelhouse/
+      - name: Fresh venv resolve and install wheel files
+        run: |
+          python -m venv clean-install
+          clean-install/bin/python -m pip install --upgrade pip
+          clean-install/bin/python -m pip install --find-links wheelhouse wheelhouse/*.whl
+          clean-install/bin/python -m pip check
+      - name: Verify facade identities and CLI in clean process
+        run: |
+          clean-install/bin/python - <<'PY'
+          import importlib.metadata as metadata
+          import psx
+          import pydux
+          import qyro
+          import velto
+          import velto.ui as ui
+          import velto.state as state
+          import velto.runtime as runtime
+          assert velto.VeltoContext is qyro.VeltoContext
+          assert ui.Button is psx.Button
+          assert state.configure_store is pydux.configure_store
+          assert runtime.get_resource is qyro.get_resource
+          for dist in ("velto", "velto-core", "pydux", "qyro-engine", "qyro-cli"):
+              print(dist, metadata.version(dist))
+          PY
+          clean-install/bin/qyro --help
+      - name: Preserve package wheel and source SHA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-c05-resolver-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: |
+            wheelhouse/
+            source-shas.txt
+          if-no-files-found: warn
+          retention-days: 30
