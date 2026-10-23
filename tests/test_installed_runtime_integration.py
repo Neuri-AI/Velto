@@ -61,13 +61,21 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch, tmp_path):
 
     if native_backend is None:
         monkeypatch.setattr(IntegratedApplication, "_create_renderer", real_headless_renderer)
-    monkeypatch.setattr(IntegratedApplication, "_present", lambda *_: None)
+    if native_backend is None:
+        monkeypatch.setattr(IntegratedApplication, "_present", lambda *_: None)
     instance = None
     try:
         instance = IntegratedApplication(custom_root=tmp_path, enable_sentry=False)
         assert instance.metadata.app_name == "Integrated native application"
         assert instance.container.settings_adapter.get_raw_settings()["framework"] == (native_backend or "tkinter")
         native = instance.mount()
+        if native_backend == "pyside6":
+            assert native.widget.window().windowTitle() == "Integrated native application"
+        elif native_backend == "tkinter":
+            assert instance.renderer.root.title() == "Integrated native application"
+        elif native_backend == "kivy":
+            from kivy.core.window import Window
+            assert Window.title == "Integrated native application"
         assert native is instance.handle
         assert instance.app is not None
         assert instance.renderer.sfle_result is not None
