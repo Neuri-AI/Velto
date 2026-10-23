@@ -3,7 +3,7 @@ name: Sustained native lifecycle certification
 on:
   push:
     paths:
-      - "tests/certification/sustained_native_state.py"
+      - "tests/certification/**"
       - ".github/workflows/sustained-native-lifecycle.yml"
   workflow_dispatch:
 
