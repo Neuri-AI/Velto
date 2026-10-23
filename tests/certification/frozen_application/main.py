@@ -16,6 +16,7 @@ def main():
         application.mount()
         assert application.is_frozen, "Certification must execute the PyInstaller binary"
         assert application.metadata.app_name == "VeltoFrozenSmoke"
+        # This must resolve inside the shipped protected bundle, not the checkout.
         path = Path(application.get_resource("fixtures", "token.txt"))
         assert path.read_text(encoding="utf-8") == "protected-by-qyro"
         application.renderer.root.after(75, application.renderer.root.quit)
