@@ -19,6 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         python: ["3.11", "3.12"]
+        mode: ["onedir", "onefile"]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,10 +61,14 @@ jobs:
           cp -R facade/tests/certification/frozen_application/. packaged-app/
           (
             cd packaged-app
-            ../clean/bin/velto build --mode onedir --console 2>&1 | tee ../freeze.log
+            ../clean/bin/velto build --mode ${{ matrix.mode }} --console 2>&1 | tee ../freeze.log
           )
           test -s packaged-app/.velto/resources.pak
-          test -x packaged-app/build/VeltoFrozenSmoke/VeltoFrozenSmoke
+          if [ "${{ matrix.mode }}" = "onedir" ]; then
+            test -x packaged-app/build/VeltoFrozenSmoke/VeltoFrozenSmoke
+          else
+            test -x packaged-app/build/VeltoFrozenSmoke
+          fi
           (
             cd packaged-app
             ../clean/bin/velto bundle --format tar.gz --no-resources 2>&1 | tee ../bundle.log
@@ -79,7 +84,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frozen-tkinter-python-${{ matrix.python }}
+          name: frozen-tkinter-python-${{ matrix.python }}-${{ matrix.mode }}
           path: |
             source-shas.txt
             freeze.log
