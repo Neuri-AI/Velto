@@ -77,7 +77,13 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch, tmp_path):
         assert instance.pydux_store is store
         assert rendered_counts[-1] == 1
         store.dispatch(Action("increment"))
-        instance.renderer.flush()
+        if hasattr(instance.renderer, "flush"):
+            instance.renderer.flush()
+        elif native_backend == "pyside6":
+            instance.renderer.application.processEvents()
+        elif native_backend == "kivy":
+            from kivy.clock import Clock
+            Clock.tick()
         assert store.get_state() == {"count": 2}
         assert rendered_counts[-1] == 2
     finally:
