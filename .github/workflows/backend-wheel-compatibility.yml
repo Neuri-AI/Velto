@@ -79,7 +79,6 @@ jobs:
           - {os: macos-latest, python: "3.12", backend: kivy}
           - {os: ubuntu-latest, python: "3.10", backend: pyside2}
           - {os: windows-latest, python: "3.10", backend: pyside2}
-          - {os: macos-latest, python: "3.10", backend: pyside2}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -125,3 +124,23 @@ jobs:
           name: backend-source-shas-${{ matrix.os }}-${{ matrix.backend }}
           path: source-shas.txt
           if-no-files-found: warn
+
+  unsupported-pyside2-macos-arm:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Verify PySide2 wheel is unavailable for macOS arm64
+        shell: bash
+        run: |
+          python - <<'PY'
+          import platform
+          assert platform.system() == "Darwin" and platform.machine() == "arm64"
+          PY
+          python -m pip install --upgrade pip
+          if python -m pip download --only-binary=:all: --no-deps -d /tmp/pyside2-wheel 'PySide2>=5.15,<6'; then
+            echo "PySide2 is now installable: update the platform support matrix and positive tests."
+            exit 1
+          fi
+          echo "Confirmed: the published PySide2 wheel is not installable for macOS arm64."
