@@ -64,8 +64,16 @@ jobs:
           )
           test -s packaged-app/.velto/resources.pak
           test -x packaged-app/build/VeltoFrozenSmoke/VeltoFrozenSmoke
-          mkdir isolated-run-dir
-          (cd isolated-run-dir && timeout 45 xvfb-run -a ../packaged-app/build/VeltoFrozenSmoke/VeltoFrozenSmoke 2>&1 | tee ../frozen-run.log)
+          (
+            cd packaged-app
+            ../clean/bin/velto bundle --format tar.gz --no-resources 2>&1 | tee ../bundle.log
+          )
+          test -s packaged-app/release/VeltoFrozenSmoke-0.1.0.tar.gz
+          mkdir unpacked-release isolated-run-dir
+          tar -xzf packaged-app/release/VeltoFrozenSmoke-0.1.0.tar.gz -C unpacked-release
+          test -x unpacked-release/VeltoFrozenSmoke
+          test ! -d unpacked-release/resources
+          (cd isolated-run-dir && timeout 45 xvfb-run -a ../unpacked-release/VeltoFrozenSmoke 2>&1 | tee ../frozen-run.log)
           grep -F 'VELTO_FROZEN_RESOURCE_AND_WINDOW_OK' frozen-run.log
       - name: Capture actual CLI freeze and frozen runtime evidence
         if: always()
@@ -75,6 +83,7 @@ jobs:
           path: |
             source-shas.txt
             freeze.log
+            bundle.log
             frozen-run.log
             packaged-app/build/pyinstaller_command.txt
             packaged-app/build/build_log.txt
