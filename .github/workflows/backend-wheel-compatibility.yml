@@ -52,6 +52,12 @@ jobs:
           assert all(m.version(p) == '0.1.0' for p in ('velto','velto-core','pydux','qyro-engine','velto-cli'))
           PY
           clean/bin/velto --help
+      - name: Execute installed Qyro, PSX, Cinnamon and Pydux integration
+        shell: bash
+        run: |
+          clean/bin/python -m pip install pytest
+          cp facade/tests/test_installed_runtime_integration.py integration_check.py
+          clean/bin/python -m pytest -q integration_check.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
