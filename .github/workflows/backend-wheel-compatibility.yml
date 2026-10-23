@@ -1,0 +1,126 @@
+name: Backend wheel compatibility
+on:
+  push:
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/backend-wheel-compatibility.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  python-versions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: facade
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build the five current distributions
+        shell: bash
+        run: |
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/Velto-CLI.git cli
+          python -m pip install --upgrade pip build
+          mkdir wheelhouse
+          for d in facade psx pydux qyro cli; do
+            echo "$d: $(git -C "$d" rev-parse HEAD)" | tee -a source-shas.txt
+            (cd "$d" && python -m build -w -o "$GITHUB_WORKSPACE/wheelhouse")
+          done
+      - name: Clean install and facade identity verification
+        shell: bash
+        run: |
+          python -m venv clean
+          clean/bin/python -m pip install --upgrade pip
+          clean/bin/python -m pip install --find-links wheelhouse wheelhouse/*.whl
+          clean/bin/python -m pip check
+          clean/bin/python - <<'PY'
+          import importlib.metadata as m
+          import velto, qyro, psx, pydux
+          import velto.ui, velto.state, velto.runtime
+          assert velto.VeltoContext is qyro.VeltoContext
+          assert velto.ui.Button is psx.Button
+          assert velto.state.configure_store is pydux.configure_store
+          assert velto.runtime.get_resource is qyro.get_resource
+          assert all(m.version(p) == '0.1.0' for p in ('velto','velto-core','pydux','qyro-engine','velto-cli'))
+          PY
+          clean/bin/velto --help
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-wheels-${{ matrix.python }}
+          path: source-shas.txt
+          if-no-files-found: warn
+
+  backend-extras:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: "3.12", backend: pyside6}
+          - {os: ubuntu-latest, python: "3.12", backend: pyqt6}
+          - {os: ubuntu-latest, python: "3.12", backend: pyqt5}
+          - {os: ubuntu-latest, python: "3.12", backend: kivy}
+          - {os: windows-latest, python: "3.12", backend: pyside6}
+          - {os: windows-latest, python: "3.12", backend: pyqt6}
+          - {os: windows-latest, python: "3.12", backend: pyqt5}
+          - {os: windows-latest, python: "3.12", backend: kivy}
+          - {os: macos-latest, python: "3.12", backend: pyside6}
+          - {os: macos-latest, python: "3.12", backend: pyqt6}
+          - {os: macos-latest, python: "3.12", backend: pyqt5}
+          - {os: macos-latest, python: "3.12", backend: kivy}
+          - {os: ubuntu-latest, python: "3.10", backend: pyside2}
+          - {os: windows-latest, python: "3.10", backend: pyside2}
+          - {os: macos-latest, python: "3.10", backend: pyside2}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: facade
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build local distributions for optional dependency resolution
+        shell: bash
+        run: |
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          python -m pip install --upgrade pip build
+          mkdir wheelhouse
+          for d in facade psx pydux qyro; do
+            (cd "$d" && python -m build -w -o "$GITHUB_WORKSPACE/wheelhouse")
+          done
+          for d in facade psx pydux qyro; do echo "$d: $(git -C "$d" rev-parse HEAD)" | tee -a source-shas.txt; done
+      - name: Install optional backend and verify package metadata
+        shell: bash
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          python -m venv clean
+          if [ "$RUNNER_OS" = "Windows" ]; then PY=clean/Scripts/python.exe; else PY=clean/bin/python; fi
+          "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install --find-links wheelhouse "velto[$BACKEND]==0.1.0"
+          "$PY" -m pip check
+          "$PY" - <<'PY'
+          import importlib.metadata as m
+          import os, importlib
+          backend=os.environ['BACKEND']
+          modules={'pyside6':'PySide6','pyqt6':'PyQt6','pyqt5':'PyQt5','pyside2':'PySide2','kivy':'kivy'}
+          assert m.version('velto') == m.version('qyro-engine') == m.version('velto-core') == m.version('pydux') == '0.1.0'
+          assert importlib.import_module(modules[backend])
+          print('Installed backend extra:', backend)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-source-shas-${{ matrix.os }}-${{ matrix.backend }}
+          path: source-shas.txt
+          if-no-files-found: warn
