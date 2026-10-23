@@ -10,7 +10,7 @@ import pytest
 
 def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
     from velto import VeltoContext
-    from velto.ui import Flex, Text
+    from velto.ui import psx
     from velto.state import Action, Store
     from psx.renderers.headless import HeadlessRenderer
     from psx.sfle.engine import PythonLayoutEngine
@@ -52,11 +52,7 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
 
         def render(self):
             count = self.pydux_store.get_state()["count"]
-            return Flex(
-                Text(f"Count {count}", key="counter", layout_width="90px",
-                     layout_height="20px"),
-                width="240px", height="120px",
-            )
+            return psx('<Flex width="240px" height="120px"><Text value={label} layout_width="90px" layout_height="20px" /></Flex>', scope={"label": f"Count {count}"})
 
     monkeypatch.setattr(IntegratedApplication, "_create_renderer", real_headless_renderer)
     monkeypatch.setattr(IntegratedApplication, "_present", lambda *_: None)
