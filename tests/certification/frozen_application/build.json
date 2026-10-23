@@ -1,0 +1,22 @@
+{
+  "app_name": "VeltoFrozenSmoke",
+  "version": "0.1.0",
+  "entry_point": "main.py",
+  "framework": "tkinter",
+  "bundle": "onedir",
+  "resource_protection": {
+    "enabled": true
+  },
+  "optimization": {
+    "upx_enabled": false,
+    "strip_binaries": false,
+    "bytecode_opt": 0,
+    "clean_build": true,
+    "exclude_modules": [],
+    "remove_translations": false
+  },
+  "debug": {
+    "enabled": true,
+    "console": true
+  }
+}
