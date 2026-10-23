@@ -13,7 +13,7 @@ import pytest
 def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
     from velto import VeltoContext
     from velto.ui import psx
-    from velto.state import Action, Store
+    from velto.state import Action, Store, use_selector
     from psx.renderers.headless import HeadlessRenderer
     from psx.sfle.engine import PythonLayoutEngine
     from psx.sfle.model import AvailableSize, LayoutConstraints
@@ -50,11 +50,14 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
             engine=PythonLayoutEngine(),
         )
 
+    rendered_counts = []
+
     class IntegratedApplication(VeltoContext):
         pydux_store = store
 
         def render(self):
-            count = self.pydux_store.get_state()["count"]
+            count = use_selector(lambda state: state["count"])
+            rendered_counts.append(count)
             return psx('<Flex width="240px" height="120px"><Text value={label} layout_width="90px" layout_height="20px" /></Flex>', scope={"label": f"Count {count}"})
 
     if native_backend is None:
@@ -71,11 +74,15 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
         assert instance.mount() is native
         assert instance.app.reconciler is not None
         assert instance.pydux_store is store
+        assert rendered_counts[-1] == 1
         store.dispatch(Action("increment"))
+        instance.renderer.flush()
         assert store.get_state() == {"count": 2}
+        assert rendered_counts[-1] == 2
     finally:
         if instance is not None:
             instance.unmount()
             assert instance.handle is None
+            assert getattr(store, "_pydux_psx_inspector_leases", 0) == 0
         VeltoContext._global_container = previous_container
         VeltoContext._global_boot_info = previous_boot_info
