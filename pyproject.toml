@@ -3,13 +3,13 @@ name = "velto"
 version = "0.1.0"
 description = "The public application facade for Qyro, PSX, and Pydux."
 readme = "README.md"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10,<3.13.20"
 license = { text = "MIT" }
 authors = [
     { name = "Neuri" },
 ]
 dependencies = [
-    "qyro-engine>=1.0.0a1,<2.0.0",
+    "qyro-engine>=0.1.0,<1.0.0",
     "velto-core>=0.1.0,<1.0.0",
     "pydux[psx]>=0.1.0,<1.0.0",
 ]

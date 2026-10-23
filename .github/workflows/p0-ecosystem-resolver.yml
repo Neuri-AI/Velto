@@ -1,4 +1,4 @@
-name: P0 C05 full ecosystem wheel resolver
+name: Full ecosystem wheel installation and resolver
 
 on:
   push:
@@ -29,9 +29,9 @@ jobs:
       - name: Clone current collaborating sources
         run: |
           git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
-          git clone --depth=1 https://github.com/Neuri-AI/Pydux.git pydux
-          git clone --depth=1 https://github.com/Neuri-AI/qyro.git qyro
-          git clone --depth=1 https://github.com/Neuri-AI/Velto-CLI.git cli
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/Velto-CLI.git cli
           for name in facade psx pydux qyro cli; do
             echo "$name: $(git -C "$name" rev-parse HEAD)" | tee -a source-shas.txt
           done
@@ -65,15 +65,17 @@ jobs:
           assert ui.Button is psx.Button
           assert state.configure_store is pydux.configure_store
           assert runtime.get_resource is qyro.get_resource
-          for dist in ("velto", "velto-core", "pydux", "qyro-engine", "qyro-cli"):
-              print(dist, metadata.version(dist))
+          for dist in ("velto", "velto-core", "pydux", "qyro-engine", "velto-cli"):
+              actual_version = metadata.version(dist)
+              assert actual_version == "0.1.0", (dist, actual_version)
+              print(dist, actual_version)
           PY
-          clean-install/bin/qyro --help
+          clean-install/bin/velto --help
       - name: Preserve package wheel and source SHA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p0-c05-resolver-py${{ matrix.python-version }}-${{ github.run_id }}
+          name: ecosystem-wheel-resolver-py${{ matrix.python-version }}-${{ github.run_id }}
           path: |
             wheelhouse/
             source-shas.txt
