@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - "pyproject.toml"
+      - "tests/test_installed_runtime_integration.py"
       - ".github/workflows/backend-wheel-compatibility.yml"
   workflow_dispatch:
 permissions:
@@ -150,3 +151,76 @@ jobs:
             exit 1
           fi
           echo "Confirmed: the published PySide2 wheel is not installable for macOS arm64."
+
+  native-application-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [pyside6, tkinter, kivy]
+        layout-engine: [python, rust]
+    env:
+      KIVY_NO_ARGS: "1"
+      KIVY_NO_CONSOLELOG: "1"
+      QT_QPA_PLATFORM: xcb
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: facade
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.layout-engine == 'rust'
+      - name: Install native window host libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth libegl1 libopengl0 libxkbcommon-x11-0 libxcb-cursor0 libdbus-1-3
+      - name: Build current installed Velto family
+        run: |
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/Velto-CLI.git cli
+          python -m pip install --upgrade pip build
+          mkdir wheelhouse
+          for d in facade psx pydux qyro cli; do
+            echo "$d: $(git -C "$d" rev-parse HEAD)" | tee -a source-shas.txt
+            (cd "$d" && python -m build -w -o "$GITHUB_WORKSPACE/wheelhouse")
+          done
+          python -m venv clean
+          clean/bin/python -m pip install --upgrade pip
+          clean/bin/python -m pip install --find-links wheelhouse wheelhouse/pydux-0.1.0-*.whl
+          if [ "${{ matrix.backend }}" = "tkinter" ]; then
+            clean/bin/python -m pip install --find-links wheelhouse wheelhouse/*.whl
+          else
+            clean/bin/python -m pip install --find-links wheelhouse "velto[${{ matrix.backend }}]==0.1.0" wheelhouse/velto_cli-0.1.0-*.whl
+          fi
+          clean/bin/python -m pip install pytest
+          clean/bin/python -m pip check
+      - name: Build and install Rust Cinnamon when requested
+        if: matrix.layout-engine == 'rust'
+        run: |
+          clean/bin/python -m pip install 'maturin>=1.8,<2'
+          clean/bin/maturin build --release --manifest-path psx/rust/sfle-core/Cargo.toml --out native-wheel
+          clean/bin/python -m pip install --no-deps native-wheel/*.whl
+      - name: Assert selected Cinnamon engine and run mounted native application
+        env:
+          VELTO_INTEGRATION_BACKEND: ${{ matrix.backend }}
+          EXPECTED_LAYOUT_ENGINE: ${{ matrix.layout-engine }}
+        run: |
+          clean/bin/python - <<'PY'
+          import os
+          from psx.sfle.backend import load_layout_engine
+          actual = load_layout_engine().backend_name
+          assert actual == os.environ["EXPECTED_LAYOUT_ENGINE"], (actual, os.environ)
+          PY
+          cp facade/tests/test_installed_runtime_integration.py integration_check.py
+          xvfb-run -a clean/bin/python -m pytest -q integration_check.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-integration-${{ matrix.backend }}-${{ matrix.layout-engine }}
+          path: source-shas.txt
+          if-no-files-found: warn
