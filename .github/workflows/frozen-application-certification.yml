@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/frozen-application-certification.yml"
-      - "tests/certification/frozen_application/**"
+      - "tests/certification/**"
       - "pyproject.toml"
   workflow_dispatch:
 
