@@ -107,6 +107,7 @@ jobs:
           python -m venv clean
           if [ "$RUNNER_OS" = "Windows" ]; then PY=clean/Scripts/python.exe; else PY=clean/bin/python; fi
           "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install --find-links wheelhouse wheelhouse/pydux-0.1.0-*.whl
           "$PY" -m pip install --find-links wheelhouse "velto[$BACKEND]==0.1.0"
           "$PY" -m pip check
           "$PY" - <<'PY'
