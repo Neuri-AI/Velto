@@ -66,7 +66,9 @@ jobs:
           assert state.configure_store is pydux.configure_store
           assert runtime.get_resource is qyro.get_resource
           for dist in ("velto", "velto-core", "pydux", "qyro-engine", "velto-cli"):
-              print(dist, metadata.version(dist))
+              actual_version = metadata.version(dist)
+              assert actual_version == "0.1.0", (dist, actual_version)
+              print(dist, actual_version)
           PY
           clean-install/bin/velto --help
       - name: Preserve package wheel and source SHA evidence
