@@ -1,0 +1,82 @@
+name: Sustained native lifecycle certification
+
+on:
+  push:
+    paths:
+      - "tests/certification/**"
+      - ".github/workflows/sustained-native-lifecycle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tkinter-state-ownership:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [python, rust]
+    env:
+      QT_QPA_PLATFORM: offscreen
+      EXPECTED_LAYOUT_ENGINE: ${{ matrix.engine }}
+      VELTO_SOAK_MIN_SECONDS: "120"
+      VELTO_RESOURCE_REPORT_DIR: resource-reports
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: facade
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@stable
+        if: matrix.engine == 'rust'
+      - name: Install native test environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth
+      - name: Install ecosystem source wheels
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          for d in facade psx pydux qyro; do
+            echo "$d: $(git -C "$d" rev-parse HEAD)" | tee -a source-shas.txt
+          done
+          python -m pip install --upgrade pip build
+          mkdir wheelhouse
+          for d in facade psx pydux qyro; do
+            (cd "$d" && python -m build --wheel -o "$GITHUB_WORKSPACE/wheelhouse")
+          done
+          python -m venv clean
+          clean/bin/python -m pip install --upgrade pip
+          clean/bin/python -m pip install --find-links wheelhouse wheelhouse/pydux-0.1.0-*.whl
+          clean/bin/python -m pip install --find-links wheelhouse wheelhouse/velto-0.1.0-*.whl
+          clean/bin/python -m pip install pytest psutil
+          clean/bin/python -m pip check
+      - name: Install native Rust layout engine
+        if: matrix.engine == 'rust'
+        run: |
+          clean/bin/python -m pip install 'maturin>=1.8,<2'
+          clean/bin/maturin build --release --manifest-path psx/rust/sfle-core/Cargo.toml --out native-wheel
+          clean/bin/python -m pip install --no-deps native-wheel/*.whl
+      - name: Verify actual engine and exercise 2000 continuous state updates
+        run: |
+          clean/bin/python - <<'PY'
+          import os
+          from psx.sfle.backend import load_layout_engine
+          assert load_layout_engine().backend_name == os.environ["EXPECTED_LAYOUT_ENGINE"]
+          PY
+          cp facade/tests/certification/sustained_native_state.py sustained_check.py
+          xvfb-run -a clean/bin/python -m pytest -q sustained_check.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sustained-native-${{ matrix.engine }}
+          path: |
+            source-shas.txt
+            resource-reports/
+          if-no-files-found: warn

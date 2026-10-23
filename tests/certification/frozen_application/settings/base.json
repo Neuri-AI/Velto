@@ -1,0 +1,9 @@
+{
+  "app_name": "VeltoFrozenSmoke",
+  "framework": "tkinter",
+  "window": {
+    "width": 320,
+    "height": 120
+  },
+  "version": "0.1.0"
+}

@@ -1,0 +1,95 @@
+name: Frozen application resource certification
+
+on:
+  push:
+    paths:
+      - ".github/workflows/frozen-application-certification.yml"
+      - "tests/certification/**"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-tkinter-protected-resources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+        mode: ["onedir", "onefile"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: facade
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install native Tk and build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth python3-tk gcc
+      - name: Build actual ecosystem source distributions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/Velto-CLI.git cli
+          for d in facade psx pydux qyro cli; do
+            echo "$d: $(git -C "$d" rev-parse HEAD)" | tee -a source-shas.txt
+          done
+          python -m pip install --upgrade pip build
+          mkdir wheelhouse
+          for d in facade psx pydux qyro cli; do
+            (cd "$d" && python -m build -w -o "$GITHUB_WORKSPACE/wheelhouse")
+          done
+          python -m venv clean
+          clean/bin/python -m pip install --upgrade pip
+          clean/bin/python -m pip install --find-links wheelhouse wheelhouse/pydux-0.1.0-*.whl
+          clean/bin/python -m pip install --find-links wheelhouse wheelhouse/*.whl
+          clean/bin/python -m pip install 'pyinstaller>=6,<7' 'cython>=3,<4'
+          clean/bin/python -m pip check
+      - name: Freeze with Velto CLI and run binary without source resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir packaged-app
+          cp -R facade/tests/certification/frozen_application/. packaged-app/
+          (
+            cd packaged-app
+            ../clean/bin/velto build --mode ${{ matrix.mode }} --console 2>&1 | tee ../freeze.log
+          )
+          test -s packaged-app/.velto/resources.pak
+          if [ "${{ matrix.mode }}" = "onedir" ]; then
+            test -x packaged-app/build/VeltoFrozenSmoke/VeltoFrozenSmoke
+          else
+            test -x packaged-app/build/VeltoFrozenSmoke
+          fi
+          (
+            cd packaged-app
+            ../clean/bin/velto bundle --format tar.gz --no-resources 2>&1 | tee ../bundle.log
+          )
+          test -s packaged-app/release/VeltoFrozenSmoke-0.1.0.tar.gz
+          mkdir unpacked-release isolated-run-dir
+          tar -xzf packaged-app/release/VeltoFrozenSmoke-0.1.0.tar.gz -C unpacked-release
+          test -x unpacked-release/VeltoFrozenSmoke
+          test ! -d unpacked-release/resources
+          (cd isolated-run-dir && timeout 45 xvfb-run -a ../unpacked-release/VeltoFrozenSmoke 2>&1 | tee ../frozen-run.log)
+          grep -F 'VELTO_FROZEN_RESOURCE_AND_WINDOW_OK' frozen-run.log
+      - name: Capture actual CLI freeze and frozen runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frozen-tkinter-python-${{ matrix.python }}-${{ matrix.mode }}
+          path: |
+            source-shas.txt
+            freeze.log
+            bundle.log
+            frozen-run.log
+            packaged-app/build/pyinstaller_command.txt
+            packaged-app/build/build_log.txt
+          if-no-files-found: warn
