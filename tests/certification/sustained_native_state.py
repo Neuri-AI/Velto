@@ -1,4 +1,7 @@
-"""Sustained mounted Tkinter state and resource ownership certification."""
+"""Sustained mounted Tkinter state and resource ownership certification.
+
+This fixture also selects the frozen-release and memory workflows at one SHA.
+"""
 from __future__ import annotations
 
 import json
