@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sys
 import tracemalloc
+import time
 
 import psutil
 
@@ -65,6 +66,13 @@ def test_sustained_native_state_updates_release_resources(tmp_path):
                     "rss_bytes": process.memory_info().rss,
                     "python_bytes": current,
                 })
+        # Native UI callbacks may be queued; drain the Tk owner event loop
+        # before checking the final observable selector value.
+        for _ in range(100):
+            if observed[-1] == 2000:
+                break
+            app.renderer.root.update()
+            time.sleep(0.01)
         assert observed[-1] == 2000
         assert store.get_state() == {"count": 2000}
         assert len(samples) == 20
