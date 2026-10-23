@@ -56,7 +56,14 @@ def test_sustained_native_state_updates_release_resources(tmp_path):
     try:
         app = Application(custom_root=tmp_path, enable_sentry=False)
         app.mount()
+        minimum_seconds = float(os.environ.get("VELTO_SOAK_MIN_SECONDS", "0"))
+        interval = minimum_seconds / 2000
+        started = time.monotonic()
         for index in range(2000):
+            if interval:
+                delay = started + index * interval - time.monotonic()
+                if delay > 0:
+                    time.sleep(delay)
             store.dispatch(Action("advance"))
             app.renderer.root.update()
             if index % 100 == 99:
@@ -83,7 +90,8 @@ def test_sustained_native_state_updates_release_resources(tmp_path):
         report_dir.mkdir(parents=True, exist_ok=True)
         (report_dir / "sustained-state.json").write_text(
             json.dumps({"backend": "tkinter", "engine": os.environ.get("EXPECTED_LAYOUT_ENGINE"),
-                        "samples": samples, "observed_updates": observed[-1]}, indent=2),
+                        "samples": samples, "observed_updates": observed[-1],
+                        "elapsed_seconds": time.monotonic() - started}, indent=2),
             encoding="utf-8",
         )
     finally:
