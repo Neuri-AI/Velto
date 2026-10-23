@@ -5,6 +5,8 @@ headless renderer and real Python Cinnamon engine. No fake App/store/VNodes.
 """
 from __future__ import annotations
 
+import os
+
 import pytest
 
 
@@ -28,10 +30,11 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
     # The Qyro bootstrap environment is provided explicitly; everything from
     # VeltoContext.mount through the PSX app, layout and Pydux is real.
     VeltoContext._global_container = object()
+    native_backend = os.environ.get("VELTO_INTEGRATION_BACKEND")
     VeltoContext._global_boot_info = {
         "metadata": AppMetadata(
             app_name="Integrated native application",
-            raw_settings={"framework": "tkinter", "window": {"width": 240, "height": 120}},
+            raw_settings={"framework": native_backend or "tkinter", "window": {"width": 240, "height": 120}},
         ),
         "is_frozen": False,
         "platform": PlatformType.LINUX,
@@ -54,7 +57,8 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
             count = self.pydux_store.get_state()["count"]
             return psx('<Flex width="240px" height="120px"><Text value={label} layout_width="90px" layout_height="20px" /></Flex>', scope={"label": f"Count {count}"})
 
-    monkeypatch.setattr(IntegratedApplication, "_create_renderer", real_headless_renderer)
+    if native_backend is None:
+        monkeypatch.setattr(IntegratedApplication, "_create_renderer", real_headless_renderer)
     monkeypatch.setattr(IntegratedApplication, "_present", lambda *_: None)
     instance = None
     try:
