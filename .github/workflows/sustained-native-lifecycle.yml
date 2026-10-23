@@ -21,6 +21,7 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
       EXPECTED_LAYOUT_ENGINE: ${{ matrix.engine }}
+      VELTO_SOAK_MIN_SECONDS: "120"
       VELTO_RESOURCE_REPORT_DIR: resource-reports
     steps:
       - uses: actions/checkout@v4
