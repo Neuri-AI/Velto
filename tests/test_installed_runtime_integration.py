@@ -6,18 +6,19 @@ headless renderer and real Python Cinnamon engine. No fake App/store/VNodes.
 from __future__ import annotations
 
 import os
+import json
+import sys
 
 import pytest
 
 
-def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
+def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch, tmp_path):
     from velto import VeltoContext
     from velto.ui import psx
     from velto.state import Action, Store, use_selector
     from psx.renderers.headless import HeadlessRenderer
     from psx.sfle.engine import PythonLayoutEngine
     from psx.sfle.model import AvailableSize, LayoutConstraints
-    from qyro.domain.entities import AppMetadata, ExecutionMode, PlatformType
 
     def reducer(state, action):
         if action.type == "increment":
@@ -27,19 +28,17 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
     store = Store(reducer, {"count": 1})
     previous_container = VeltoContext._global_container
     previous_boot_info = VeltoContext._global_boot_info
-    # The Qyro bootstrap environment is provided explicitly; everything from
-    # VeltoContext.mount through the PSX app, layout and Pydux is real.
-    VeltoContext._global_container = object()
     native_backend = os.environ.get("VELTO_INTEGRATION_BACKEND")
-    VeltoContext._global_boot_info = {
-        "metadata": AppMetadata(
-            app_name="Integrated native application",
-            raw_settings={"framework": native_backend or "tkinter", "window": {"width": 240, "height": 120}},
-        ),
-        "is_frozen": False,
-        "platform": PlatformType.LINUX,
-        "execution_mode": ExecutionMode.SOURCE,
-    }
+    settings_dir = tmp_path / "settings"
+    settings_dir.mkdir()
+    (settings_dir / "base.json").write_text(json.dumps({
+        "app_name": "Integrated native application",
+        "framework": native_backend or "tkinter",
+        "window": {"width": 240, "height": 120},
+    }), encoding="utf-8")
+    previous_excepthook = sys.excepthook
+    VeltoContext._global_container = None
+    VeltoContext._global_boot_info = None
 
     def real_headless_renderer(_self, binding, width, height):
         assert binding == "tkinter"
@@ -65,7 +64,9 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
     monkeypatch.setattr(IntegratedApplication, "_present", lambda *_: None)
     instance = None
     try:
-        instance = IntegratedApplication()
+        instance = IntegratedApplication(custom_root=tmp_path, enable_sentry=False)
+        assert instance.metadata.app_name == "Integrated native application"
+        assert instance.container.settings_adapter.get_raw_settings()["framework"] == (native_backend or "tkinter")
         native = instance.mount()
         assert native is instance.handle
         assert instance.app is not None
@@ -86,3 +87,4 @@ def test_context_mounts_real_psx_cinnamon_and_pydux(monkeypatch):
             assert getattr(store, "_pydux_psx_inspector_leases", 0) == 0
         VeltoContext._global_container = previous_container
         VeltoContext._global_boot_info = previous_boot_info
+        sys.excepthook = previous_excepthook
