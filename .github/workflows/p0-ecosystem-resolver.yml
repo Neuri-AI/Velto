@@ -28,10 +28,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Clone current collaborating sources
         run: |
-          git clone --depth=1 --branch feature/cross-platform-certification https://github.com/Neuri-AI/PSX.git psx
-          git clone --depth=1 --branch feature/align-package-compatibility https://github.com/Neuri-AI/Pydux.git pydux
-          git clone --depth=1 --branch feature/align-package-compatibility https://github.com/Neuri-AI/qyro.git qyro
-          git clone --depth=1 --branch feature/align-package-compatibility https://github.com/Neuri-AI/Velto-CLI.git cli
+          git clone --depth=1 --branch develop https://github.com/Neuri-AI/PSX.git psx
+          git clone --depth=1 --branch main https://github.com/Neuri-AI/Pydux.git pydux
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/qyro.git qyro
+          git clone --depth=1 --branch release https://github.com/Neuri-AI/Velto-CLI.git cli
           for name in facade psx pydux qyro cli; do
             echo "$name: $(git -C "$name" rev-parse HEAD)" | tee -a source-shas.txt
           done
