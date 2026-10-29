@@ -11,34 +11,29 @@ authors = [
 dependencies = [
     "qyro-engine>=0.1.0,<1.0.0",
     "velto-core>=0.1.0,<1.0.0",
-    "pydux[psx]>=0.1.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
+state = ["pydux[psx]>=0.1.0,<1.0.0"]
 pyside6 = [
     "qyro-engine[pyside6]>=0.1.0,<1.0.0",
     "velto-core[pyside6]>=0.1.0,<1.0.0",
-    "pydux[psx,pyside6]>=0.1.0,<1.0.0",
 ]
 pyqt6 = [
     "qyro-engine[pyqt6]>=0.1.0,<1.0.0",
     "velto-core[pyqt6]>=0.1.0,<1.0.0",
-    "pydux[psx,pyqt6]>=0.1.0,<1.0.0",
 ]
 pyqt5 = [
     "qyro-engine[pyqt5]>=0.1.0,<1.0.0",
     "velto-core[pyqt5]>=0.1.0,<1.0.0",
-    "pydux[psx,pyqt5]>=0.1.0,<1.0.0",
 ]
 pyside2 = [
     "qyro-engine[pyside2]>=0.1.0,<1.0.0",
     "velto-core[pyside2]>=0.1.0,<1.0.0",
-    "pydux[psx,pyside2]>=0.1.0,<1.0.0",
 ]
 kivy = [
     "qyro-engine[kivy]>=0.1.0,<1.0.0",
     "velto-core[kivy]>=0.1.0,<1.0.0",
-    "pydux[psx,kivy]>=0.1.0,<1.0.0",
 ]
 sentry = ["qyro-engine[sentry]>=0.1.0,<1.0.0"]
 

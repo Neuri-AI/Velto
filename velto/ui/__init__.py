@@ -51,6 +51,7 @@ from psx import (
     create_element,
     load_plugins,
     native_widget,
+    native_adapter,
     psx,
     register_adapter,
     register_component,
@@ -59,7 +60,14 @@ from psx import (
     use_ref,
     use_state,
 )
-from pydux import MainThreadBridge, Reactive, ReactiveBinding, connect, connect_qyro
+# Pydux is an optional state integration; PSX UI must work without it.
+try:
+    from pydux import MainThreadBridge, Reactive, ReactiveBinding, connect, connect_qyro
+except ImportError as error:
+    if not (error.name == "pydux" or (error.name or "").startswith("pydux.")):
+        raise
+    # The Pydux-specific names are deliberately not exposed when absent.
+    pass
 
 __all__ = [
     "App", "Badge", "Button", "Checkbox", "ComponentAdapter", "ComponentDefinition",
@@ -72,7 +80,11 @@ __all__ = [
     "RendererCapabilityError", "RendererConfigurationError", "Scroll", "Select", "Slider",
     "Spacer", "SpinBox", "Switch", "Text", "TextArea", "WebView",
     "ThreadViolationError", "VNode", "builtin_component_registry", "component", "connect",
-    "connect_qyro", "create_element", "load_plugins", "native_widget", "psx",
+    "connect_qyro", "create_element", "load_plugins", "native_widget", "native_adapter", "psx",
     "register_adapter", "register_component", "renderer_capabilities", "use_effect", "use_ref",
     "use_state",
 ]
+
+# Only publish Pydux integration symbols if the optional dependency is installed.
+_PYDUX_NAMES = ("MainThreadBridge", "Reactive", "ReactiveBinding", "connect", "connect_qyro")
+__all__ = [name for name in __all__ if name not in _PYDUX_NAMES or name in globals()]
