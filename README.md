@@ -1,4 +1,22 @@
+<p align="center">
+  <img
+    src="https://ik.imagekit.io/kummiktgaiq/ppg/velto-logo_KcLcXCZnT.png"
+    alt="velto Logo"
+    width="50%"
+  >
+</p>
+
 # Velto
+
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://python.org)
+[![velto Platforms Tests](https://github.com/Neuri-AI/velto/actions/workflows/matrix.yml/badge.svg)](https://github.com/Neuri-AI/velto/actions/workflows/matrix.yml)
+![GitHub Release](https://img.shields.io/github/v/release/Neuri-AI/velto?include_prereleases&display_name=release&color=stable)
+![GitHub Issues](https://img.shields.io/github/issues/Neuri-AI/velto)
+![GitHub Issues Closed](https://img.shields.io/github/issues-closed/Neuri-AI/velto?color=green)
+![GitHub forks](https://img.shields.io/github/forks/Neuri-AI/velto)
+![GitHub stars](https://img.shields.io/github/stars/Neuri-AI/velto)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000000)](https://buymeacoffee.com/neuri)
 
 Velto is the public application facade for Qyro, PSX, and Pydux.
 
