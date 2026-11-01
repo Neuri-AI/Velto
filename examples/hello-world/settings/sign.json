@@ -1,0 +1,21 @@
+{
+    "windows": {
+        "certificate": "src/sign/windows/certificate.pfx",
+        "timestamp_server": "http://timestamp.digicert.com",
+        "description": "test",
+        "url": "https://example.com",
+        "password": "<local-secret>"
+    },
+    "mac": {
+        "identity": "Developer ID Application: Your Name (TEAMID)",
+        "entitlements": "src/sign/mac/entitlements.plist",
+        "target_architecture": "universal2",
+        "app_password": "<local-secret>",
+        "keychain_profile": "QYRO-NOTARY-LOCAL",
+        "notary": {
+            "enabled": true,
+            "staple": true,
+            "assess_gatekeeper": true
+        }
+    }
+}

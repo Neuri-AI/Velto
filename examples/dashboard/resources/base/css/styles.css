@@ -1,0 +1,137 @@
+.layout {
+  min-height: 100vh;
+}
+
+.sidebar {
+  height: 100vh;
+  background: #1f2430;
+  padding: 20px 12px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.sidebar h5 {
+  margin-left: 8px;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-content > button {
+    text-align: left;
+    height: 38px;
+    font-size: 15px;
+    padding: 0px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    color: #6b7385;
+    font-weight: 400;
+    background: transparent;
+}
+.sidebar-content > button.active {
+  background: #3b6ef5;
+  color: #fff;
+}
+
+div.flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    background: #fff;
+    color: #333;
+}
+
+.header{
+  border-bottom: 1px solid #ccc;
+}
+
+.bold {
+    font-weight: 600;
+    font-size: 18px;
+
+}
+p.greetings{
+    color: #6b7385;
+    font-size: 15px;
+}
+
+.container{
+  padding: 16px;
+}
+.content{
+  background: #f5f6f8;
+  height: 100vh;
+}
+.card{
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  max-height: 250px;
+}
+
+.card-title {
+  font-size: 14px;
+  color: #6b7385;
+}
+.card-value {
+  font-size: 24px;
+  font-weight: 600;
+
+}
+
+h3{
+  color: #333;
+}
+
+.details{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.activity-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px 16px 0px;
+    background: #fff;
+    color: #333;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.activity-time {
+    font-size: 14px;
+    color: #6b7385;
+    min-width: 120px;
+    text-align: right;
+}
+
+.activity-description {
+    font-size: 14px;
+    color: #212121;
+    width: 100%;
+}
+.activity-card{
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  color: #333;
+  border: 1px solid #e0e0e0;
+}
+
+.activity-card > h5{
+    margin-bottom: 16px;
+}
+

@@ -1,0 +1,22 @@
+{
+    "app_name": "dashboard",
+    "author": "fredo",
+    "entry_point": "main.py",
+    "addons": [],
+    "version": "1.0.0",
+    "framework": "Kivy",
+    "hidden_imports": [
+        "__future__"
+    ],
+    "window": {
+        "width": 1366,
+        "height": 768
+    },
+    "optimization": {
+        "exclude_modules": [
+            "unittest",
+            "test",
+            "pydoc"
+        ]
+    }
+}
