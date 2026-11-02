@@ -1,0 +1,38 @@
+.root {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 24px;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.toolbar button {
+  padding: 10px 16px;
+  border: 1px solid #404850;
+  border-radius: 8px;
+  background-color: #252b35;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.switch-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+span.highlight{
+  background-color: #404243;
+  border-radius: 4px;
+  padding: 4px;
+}

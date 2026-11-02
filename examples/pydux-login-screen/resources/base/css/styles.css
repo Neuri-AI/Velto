@@ -1,0 +1,38 @@
+.root{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 30px 20px;
+}
+form{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px 0px;
+  max-width: 500px;
+}
+
+input{
+  padding: 8px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  color: #000;
+}
+
+button{
+  padding: 8px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+.error{
+  color: red;
+  font-weight: bold;
+}
+.success{
+  color: green;
+  font-weight: bold;
+}

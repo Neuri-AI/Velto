@@ -1,0 +1,15 @@
+{
+  "hot_reload": {
+    "enabled": true,
+    "debounce_ms": 150,
+    "watch": ["."],
+    "ignore": [
+      ".git",
+      "__pycache__",
+      ".venv",
+      "build",
+      "dist"
+    ],
+    "preserve_state": true
+  }
+}

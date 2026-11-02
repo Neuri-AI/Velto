@@ -1,0 +1,23 @@
+{
+    "app_name": "qt-charts",
+    "author": "fredo",
+    "entry_point": "main.py",
+    "addons": [],
+    "version": "1.0.0",
+    "framework": "PySide6",
+    "hidden_imports": [
+        "__future__"
+    ],
+    "window": {
+        "width": 800,
+        "height": 600
+    },
+    "optimization": {
+        "exclude_modules": [
+            "tkinter",
+            "unittest",
+            "test",
+            "pydoc"
+        ]
+    }
+}

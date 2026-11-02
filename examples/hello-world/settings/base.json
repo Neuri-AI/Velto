@@ -4,7 +4,7 @@
     "entry_point": "main.py",
     "addons": [],
     "version": "1.0.0",
-    "framework": "Kivy",
+    "framework": "PySide6",
     "hidden_imports": [
         "__future__"
     ],

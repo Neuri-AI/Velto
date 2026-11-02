@@ -1,7 +1,5 @@
 __pycache__/
 build/
-settings/secrets.json
-settings/sign.json
 *.pyc
 *.pyo
 *.pyd

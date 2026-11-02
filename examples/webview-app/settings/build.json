@@ -1,0 +1,8 @@
+{
+  "resource_protection": {
+    "enabled": true,
+    "settings_dir": "settings",
+    "resources_dir": "resources",
+    "bundle_path": ".velto/resources.pak"
+  }
+}
