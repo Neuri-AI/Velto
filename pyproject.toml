@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-state = ["pydux[psx]>=0.1.0,<1.0.0"]
+state = ["pydux-store[psx]>=0.1.0,<1.0.0"]
 pyside6 = [
     "qyro-engine[pyside6]>=0.1.0,<1.0.0",
     "velto-core[pyside6]>=0.1.0,<1.0.0",
