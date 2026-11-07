@@ -1,9 +1,9 @@
 [project]
 name = "velto"
-version = "0.1.0"
+version = "0.1.1"
 description = "The public application facade for Qyro, PSX, and Pydux."
 readme = "README.md"
-requires-python = ">=3.10,<3.13.20"
+requires-python = ">=3.10,<3.14.20"
 license = { text = "MIT" }
 authors = [
     { name = "Neuri" },
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-state = ["pydux-store[psx]>=0.1.0,<1.0.0"]
+state = ["pydux-store[psx]>=0.1.1,<1.0.0"]
 pyside6 = [
     "qyro-engine[pyside6]>=0.1.0,<1.0.0",
     "velto-core[pyside6]>=0.1.0,<1.0.0",
